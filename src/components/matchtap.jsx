@@ -177,15 +177,15 @@ export default function CarrefourColorRush() {
 
   if (gameState === 'start') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(to bottom right, #0055A5, #00387B, #002855)' }}>
         <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">🛒</div>
-          <h1 className="text-4xl font-bold text-blue-900 mb-2">Carrefour</h1>
-          <h2 className="text-2xl font-bold text-blue-700 mb-6">Color Rush</h2>
+          <h1 className="text-4xl font-bold mb-2" style={{ color: '#00387B' }}>Carrefour</h1>
+          <h2 className="text-2xl font-bold mb-6" style={{ color: '#0055A5' }}>Color Rush</h2>
           <p className="text-gray-600 mb-6">Spot the products, tap the color, win big!</p>
 
-          <div className="bg-blue-50 rounded-xl p-6 mb-6 text-left">
-            <h3 className="font-bold text-blue-900 mb-3">How to Play:</h3>
+          <div className="rounded-xl p-6 mb-6 text-left" style={{ backgroundColor: '#E6F0FF' }}>
+            <h3 className="font-bold mb-3" style={{ color: '#00387B' }}>How to Play:</h3>
             <ul className="space-y-2 text-sm text-gray-700">
               <li>🎯 Match products to their color quadrants</li>
               <li>⚡ Tap as fast as you can!</li>
@@ -196,7 +196,10 @@ export default function CarrefourColorRush() {
 
           <button
             onClick={startGame}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl text-xl transition-all transform hover:scale-105 active:scale-95"
+            className="w-full text-white font-bold py-4 px-8 rounded-xl text-xl transition-all transform hover:scale-105 active:scale-95"
+            style={{ backgroundColor: '#0055A5' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#00387B'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#0055A5'}
           >
             Start Game
           </button>
@@ -208,27 +211,30 @@ export default function CarrefourColorRush() {
   if (gameState === 'ended') {
     const won = score >= 12;
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(to bottom right, #0055A5, #00387B, #002855)' }}>
         <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center animate-in fade-in zoom-in duration-500">
           <div className="text-6xl mb-4">{won ? '🎉' : '⏰'}</div>
-          <h2 className="text-3xl font-bold text-blue-900 mb-2">
+          <h2 className="text-3xl font-bold mb-2" style={{ color: '#00387B' }}>
             {won ? 'You Win!' : 'Time\'s Up!'}
           </h2>
           <p className="text-gray-600 mb-6">
             {won ? 'Amazing memory skills!' : 'Good try! Keep practicing!'}
           </p>
 
-          <div className="bg-blue-50 rounded-xl p-6 mb-6">
+          <div className="rounded-xl p-6 mb-6" style={{ backgroundColor: '#E6F0FF' }}>
             <div className="flex items-center justify-center gap-3 mb-4">
               <Trophy className="w-8 h-8 text-yellow-500" />
-              <span className="text-5xl font-bold text-blue-900">{score}</span>
+              <span className="text-5xl font-bold" style={{ color: '#00387B' }}>{score}</span>
             </div>
             <p className="text-gray-600">Products Matched</p>
           </div>
 
           <button
             onClick={startGame}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl text-xl transition-all transform hover:scale-105 active:scale-95"
+            className="w-full text-white font-bold py-4 px-8 rounded-xl text-xl transition-all transform hover:scale-105 active:scale-95"
+            style={{ backgroundColor: '#0055A5' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#00387B'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#0055A5'}
           >
             Play Again
           </button>
@@ -239,7 +245,7 @@ export default function CarrefourColorRush() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col relative overflow-hidden select-none">
-      <div className="bg-blue-600 p-4 flex items-center justify-between z-10 shadow-lg">
+      <div className="p-4 flex items-center justify-between z-10 shadow-lg" style={{ backgroundColor: '#0055A5' }}>
         <div className="flex items-center gap-2">
           <Target className="w-6 h-6 text-white" />
           <span className="text-white font-bold text-xl">{score}/12</span>
