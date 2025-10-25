@@ -1,4 +1,4 @@
-import './App.css'
+// import './index.css'
 import CarrefourColorRush from './components/matchtap'
 
 function App() {
