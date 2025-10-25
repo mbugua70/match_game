@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Trophy, Clock, Target } from 'lucide-react';
 
 const products = [
@@ -35,26 +35,23 @@ const colorConfig = {
 };
 
 export default function CarrefourColorRush() {
-  const [gameState, setGameState] = useState('start'); // start, playing, ended
+  const [gameState, setGameState] = useState('start');
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(45);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [shake, setShake] = useState(false);
   const [flyingProduct, setFlyingProduct] = useState(null);
   const [usedProducts, setUsedProducts] = useState([]);
-  const [productSpeed, setProductSpeed] = useState(3000);
 
   const timerRef = useRef(null);
-  const productTimerRef = useRef(null);
   const audioContextRef = useRef(null);
+  const isProcessingRef = useRef(false);
 
-  // Initialize audio context
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
   }, []);
 
-  // Play success sound
-  const playSuccessSound = () => {
+  const playSuccessSound = useCallback(() => {
     const ctx = audioContextRef.current;
     if (!ctx) return;
 
@@ -73,7 +70,6 @@ export default function CarrefourColorRush() {
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + 0.2);
 
-    // Second note for chord
     const osc2 = ctx.createOscillator();
     const gain2 = ctx.createGain();
     osc2.connect(gain2);
@@ -84,97 +80,88 @@ export default function CarrefourColorRush() {
     gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
     osc2.start(ctx.currentTime);
     osc2.stop(ctx.currentTime + 0.2);
-  };
+  }, []);
+
+  const showNewProduct = useCallback(() => {
+    const availableProducts = products.filter(p => !usedProducts.includes(p.name));
+
+    if (availableProducts.length === 0) {
+      setUsedProducts([]);
+      const randomProduct = products[Math.floor(Math.random() * products.length)];
+      setCurrentProduct(randomProduct);
+      return;
+    }
+
+    const randomProduct = availableProducts[Math.floor(Math.random() * availableProducts.length)];
+    setCurrentProduct(randomProduct);
+  }, [usedProducts]);
 
   useEffect(() => {
     if (gameState === 'playing') {
       timerRef.current = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
-            endGame();
+            setGameState('ended');
+            setCurrentProduct(null);
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
 
-      return () => clearInterval(timerRef.current);
+      return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+      };
     }
   }, [gameState]);
 
   useEffect(() => {
-    if (gameState === 'playing' && timeLeft > 0) {
-      // Adjust speed based on time
-      if (timeLeft > 30) {
-        setProductSpeed(3000);
-      } else if (timeLeft > 15) {
-        setProductSpeed(2000);
-      } else {
-        setProductSpeed(1000);
-      }
-    }
-  }, [timeLeft, gameState]);
-
-  useEffect(() => {
-    if (gameState === 'playing') {
+    if (gameState === 'playing' && !currentProduct && !isProcessingRef.current) {
       showNewProduct();
-      return () => clearTimeout(productTimerRef.current);
     }
-  }, [gameState, productSpeed]);
-
-  const showNewProduct = () => {
-    const availableProducts = products.filter(p => !usedProducts.includes(p.name));
-
-    if (availableProducts.length === 0) {
-      setUsedProducts([]);
-    }
-
-    const randomProduct = availableProducts[Math.floor(Math.random() * availableProducts.length)];
-    setCurrentProduct(randomProduct);
-  };
+  }, [gameState, currentProduct, showNewProduct]);
 
   const startGame = () => {
     setGameState('playing');
     setScore(0);
     setTimeLeft(45);
     setUsedProducts([]);
-    setProductSpeed(3000);
-  };
-
-  const endGame = () => {
-    setGameState('ended');
     setCurrentProduct(null);
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (productTimerRef.current) clearTimeout(productTimerRef.current);
+    setFlyingProduct(null);
+    isProcessingRef.current = false;
   };
 
   const handleColorTap = (color) => {
-    if (!currentProduct || gameState !== 'playing') return;
+    if (!currentProduct || gameState !== 'playing' || isProcessingRef.current) return;
 
     if (currentProduct.color === color) {
-      // Correct! Play sound and animate
-      playSuccessSound();
-      setScore(prev => prev + 1);
+      isProcessingRef.current = true;
 
-      // Set flying animation
+      playSuccessSound();
+      const newScore = score + 1;
+      setScore(newScore);
+
       setFlyingProduct({ ...currentProduct, targetColor: color });
       setUsedProducts(prev => [...prev, currentProduct.name]);
-
-      // Immediately show new product
       setCurrentProduct(null);
 
-      setTimeout(() => {
-        setFlyingProduct(null);
-        showNewProduct();
-      }, 600);
-
-      if (score + 1 >= 12) {
-        setTimeout(() => endGame(), 700);
+      if (newScore >= 12) {
+        setTimeout(() => {
+          setFlyingProduct(null);
+          setGameState('ended');
+          if (timerRef.current) clearInterval(timerRef.current);
+        }, 600);
+      } else {
+        setTimeout(() => {
+          setFlyingProduct(null);
+          isProcessingRef.current = false;
+          showNewProduct();
+        }, 600);
       }
+
     } else {
-      // Wrong!
       setShake(true);
-      setTimeout(() => setShake(false), 500);
+      setTimeout(() => setShake(false), 400);
     }
   };
 
@@ -201,7 +188,7 @@ export default function CarrefourColorRush() {
             <h3 className="font-bold text-blue-900 mb-3">How to Play:</h3>
             <ul className="space-y-2 text-sm text-gray-700">
               <li>🎯 Match products to their color quadrants</li>
-              <li>⚡ Tap fast - products speed up over time!</li>
+              <li>⚡ Tap as fast as you can!</li>
               <li>🏆 Get 12 correct matches in 45 seconds to win</li>
               <li>❌ Wrong taps waste time, so think quick!</li>
             </ul>
@@ -209,7 +196,7 @@ export default function CarrefourColorRush() {
 
           <button
             onClick={startGame}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl text-xl transition transform hover:scale-105"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl text-xl transition-all transform hover:scale-105 active:scale-95"
           >
             Start Game
           </button>
@@ -222,7 +209,7 @@ export default function CarrefourColorRush() {
     const won = score >= 12;
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center animate-in fade-in zoom-in duration-500">
           <div className="text-6xl mb-4">{won ? '🎉' : '⏰'}</div>
           <h2 className="text-3xl font-bold text-blue-900 mb-2">
             {won ? 'You Win!' : 'Time\'s Up!'}
@@ -241,7 +228,7 @@ export default function CarrefourColorRush() {
 
           <button
             onClick={startGame}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl text-xl transition transform hover:scale-105"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl text-xl transition-all transform hover:scale-105 active:scale-95"
           >
             Play Again
           </button>
@@ -251,86 +238,76 @@ export default function CarrefourColorRush() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col relative overflow-hidden">
-      {/* Header */}
-      <div className="bg-blue-600 p-4 flex items-center justify-between z-10">
+    <div className="min-h-screen bg-gray-900 flex flex-col relative overflow-hidden select-none">
+      <div className="bg-blue-600 p-4 flex items-center justify-between z-10 shadow-lg">
         <div className="flex items-center gap-2">
           <Target className="w-6 h-6 text-white" />
           <span className="text-white font-bold text-xl">{score}/12</span>
         </div>
         <div className="flex items-center gap-2">
           <Clock className="w-6 h-6 text-white" />
-          <span className={`text-white font-bold text-xl ${timeLeft <= 10 ? 'animate-pulse text-red-300' : ''}`}>
+          <span className={`text-white font-bold text-xl transition-colors ${timeLeft <= 10 ? 'animate-pulse text-red-300' : ''}`}>
             {timeLeft}s
           </span>
         </div>
       </div>
 
-      {/* Game Area */}
       <div className="flex-1 grid grid-cols-2 gap-1 p-1">
-        {/* Red Quadrant */}
         <button
           onClick={() => handleColorTap('red')}
-          className={`${colorConfig.red.bg} ${colorConfig.red.hover} relative transition flex flex-col items-center justify-center`}
+          className={`${colorConfig.red.bg} ${colorConfig.red.hover} relative transition-all active:scale-95 flex flex-col items-center justify-center touch-none`}
         >
           <div className="text-6xl mb-2">🍅</div>
-          <div className="text-white font-bold text-xl">{colorConfig.red.text}</div>
+          <div className="text-white font-bold text-xl drop-shadow-lg">{colorConfig.red.text}</div>
         </button>
 
-        {/* Green Quadrant */}
         <button
           onClick={() => handleColorTap('green')}
-          className={`${colorConfig.green.bg} ${colorConfig.green.hover} relative transition flex flex-col items-center justify-center`}
+          className={`${colorConfig.green.bg} ${colorConfig.green.hover} relative transition-all active:scale-95 flex flex-col items-center justify-center touch-none`}
         >
           <div className="text-6xl mb-2">🥬</div>
-          <div className="text-white font-bold text-xl">{colorConfig.green.text}</div>
+          <div className="text-white font-bold text-xl drop-shadow-lg">{colorConfig.green.text}</div>
         </button>
 
-        {/* Blue Quadrant */}
         <button
           onClick={() => handleColorTap('blue')}
-          className={`${colorConfig.blue.bg} ${colorConfig.blue.hover} relative transition flex flex-col items-center justify-center`}
+          className={`${colorConfig.blue.bg} ${colorConfig.blue.hover} relative transition-all active:scale-95 flex flex-col items-center justify-center touch-none`}
         >
           <div className="text-6xl mb-2">💧</div>
-          <div className="text-white font-bold text-xl">{colorConfig.blue.text}</div>
+          <div className="text-white font-bold text-xl drop-shadow-lg">{colorConfig.blue.text}</div>
         </button>
 
-        {/* Yellow Quadrant */}
         <button
           onClick={() => handleColorTap('yellow')}
-          className={`${colorConfig.yellow.bg} ${colorConfig.yellow.hover} relative transition flex flex-col items-center justify-center`}
+          className={`${colorConfig.yellow.bg} ${colorConfig.yellow.hover} relative transition-all active:scale-95 flex flex-col items-center justify-center touch-none`}
         >
           <div className="text-6xl mb-2">🍌</div>
-          <div className="text-white font-bold text-xl">{colorConfig.yellow.text}</div>
+          <div className="text-white font-bold text-xl drop-shadow-lg">{colorConfig.yellow.text}</div>
         </button>
       </div>
 
-      {/* Current Product Display */}
       {currentProduct && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-          <div className={`bg-white rounded-3xl shadow-2xl p-8 ${shake ? 'animate-bounce' : ''}`}>
+          <div className={`bg-white rounded-3xl shadow-2xl p-8 transition-all duration-200 ${shake ? 'animate-bounce' : 'animate-in zoom-in fade-in duration-300'}`}>
             <div className="text-8xl mb-4">{currentProduct.emoji}</div>
             <div className="text-2xl font-bold text-gray-800">{currentProduct.name}</div>
           </div>
         </div>
       )}
 
-      {/* Flying Product Animation */}
       {flyingProduct && (
         <div
-          className={`absolute inset-0 flex items-center justify-center pointer-events-none z-30 transition-all duration-500 ease-out ${getQuadrantPosition(flyingProduct.targetColor)}`}
+          className={`absolute inset-0 flex items-center justify-center pointer-events-none z-30 transition-all duration-500 ease-in-out ${getQuadrantPosition(flyingProduct.targetColor)}`}
           style={{
-            transform: 'scale(0.5)',
+            transform: 'scale(0.3)',
             opacity: 0
           }}
         >
-          <div className="bg-white rounded-3xl shadow-2xl p-8 animate-ping">
+          <div className="bg-white rounded-3xl shadow-2xl p-8">
             <div className="text-8xl">{flyingProduct.emoji}</div>
           </div>
         </div>
       )}
-
-
     </div>
   );
 }
