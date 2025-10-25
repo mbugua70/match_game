@@ -330,18 +330,7 @@ export default function CarrefourColorRush() {
         </div>
       )}
 
-      <style>{`
-        @keyframes flyToQuadrant {
-          0% {
-            transform: translate(0, 0) scale(1);
-            opacity: 1;
-          }
-          100% {
-            transform: translate(var(--tx), var(--ty)) scale(0.3);
-            opacity: 0;
-          }
-        }
-      `}</style>
+
     </div>
   );
 }
