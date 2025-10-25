@@ -180,8 +180,8 @@ export default function CarrefourColorRush() {
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(to bottom right, #8b1538, #8b1538, #8b1538)' }}>
         <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">🛒</div>
-          <h1 className="text-4xl font-bold mb-2" style={{ color: '#8b1538' }}>Carrefour</h1>
-          <h2 className="text-2xl font-bold mb-6" style={{ color: '#8b1538' }}>Color Rush</h2>
+          <h1 className="text-4xl font-bold mb-2" style={{ color: '#00387B' }}>Carrefour</h1>
+          <h2 className="text-2xl font-bold mb-6" style={{ color: '#00387B' }}>Color Rush</h2>
           <p className="text-gray-600 mb-6">Spot the products, tap the color, win big!</p>
 
           <div className="rounded-xl p-6 mb-6 text-left" style={{ backgroundColor: '#E6F0FF' }}>
