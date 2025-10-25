@@ -211,7 +211,7 @@ export default function CarrefourColorRush() {
   if (gameState === 'ended') {
     const won = score >= 12;
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(to bottom right, #0055A5, #00387B, #002855)' }}>
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(to bottom right, #8b1538, #8b1538, #8b1538)' }}>
         <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center animate-in fade-in zoom-in duration-500">
           <div className="text-6xl mb-4">{won ? '🎉' : '⏰'}</div>
           <h2 className="text-3xl font-bold mb-2" style={{ color: '#00387B' }}>
@@ -232,9 +232,9 @@ export default function CarrefourColorRush() {
           <button
             onClick={startGame}
             className="w-full text-white font-bold py-4 px-8 rounded-xl text-xl transition-all transform hover:scale-105 active:scale-95"
-            style={{ backgroundColor: '#0055A5' }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#00387B'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#0055A5'}
+            style={{ backgroundColor: '#8b1538' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#8b1538'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#8b1538'}
           >
             Play Again
           </button>
